@@ -1,3 +1,10 @@
+This script is written in Python 2.7. It is intended to generate an output language grammar, as defined by the features on WALS. The output lang.txt consists of a setting for each of the 144 WALS chapters, excluding a small number of subfeatures that are either language family-specific or replicated in other settings.
+
+<b>getdata.py</b>: Script for grabbing data from WALS.info
+
+<b>langgen.py</b>: Language-generating script that takes as input data.txt and outputs lang.txt
+
+
 Language data from:
 
 Dryer, Matthew S. & Haspelmath, Martin (eds.) 2013.
