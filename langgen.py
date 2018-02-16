@@ -5,29 +5,29 @@ import random
 import pickle
 
 def random_choice(data, start, end):
-    	sub_data = data[start:end]
-    	freqs = []
-    	values = []
-   	weights = []
-   	for i in range(0,len(sub_data)):
-        	if i % 2 == 0:
-            		values.append(sub_data[i])
-       		else:
-            		freqs.append(sub_data[i])
-    	for k in range(0,len(freqs)):
-        	weights.append(float(freqs[k]))
-    	normw = [w/sum(weights) for w in weights]
-    	feature = np.random.choice(values, 1, p=normw)
-    	return feature
+	sub_data = data[start:end]
+	freqs = []
+	values = []
+	weights = []
+	for i in range(0,len(sub_data)):
+		if i % 2 == 0:
+			values.append(sub_data[i])
+		else:
+			freqs.append(sub_data[i])
+	for k in range(0,len(freqs)):
+		weights.append(float(freqs[k]))
+	normw = [w/sum(weights) for w in weights]
+	feature = np.random.choice(values, 1, p=normw)
+	return feature
 
 def q21_func(data):
-    	# Isolate case exponence table & do random choice
-    	feature21a = random_choice(data, 2, 12)
-    	# Isolate TAM exponence table & do random choice
-    	feature21b = random_choice(data, 12, 24)
-    	# Make feature[0] a string combining choice for case & TAM tables
-    	feature21string = feature21a[0] + '; ' + feature21b[0]
-    	return(feature21string)
+	# Isolate case exponence table & do random choice
+	feature21a = random_choice(data, 2, 12)
+	# Isolate TAM exponence table & do random choice
+	feature21b = random_choice(data, 12, 24)
+	# Make feature[0] a string combining choice for case & TAM tables
+	feature21string = feature21a[0] + '; ' + feature21b[0]
+	return(feature21string)
 
 
 def q25_func(data):
@@ -124,7 +124,6 @@ def q144_func(data):
 	return(feature144string)
 
 with open("lang.txt", "w") as f:
-	
 	chnum = ''
 	chname = ''
 	choice_dict = {}
