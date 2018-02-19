@@ -127,6 +127,9 @@ with open("lang.txt", "w") as f:
 	chnum = ''
 	chname = ''
 	choice_dict = {}
+	data_dict = {}
+	chnames = []
+	chnums = []
 	with open('data.txt') as dfile:
 		# Put each line of data.txt into a list of lines:
 		lines = dfile.readlines()
@@ -139,6 +142,8 @@ with open("lang.txt", "w") as f:
 		data.pop()
 		chnum = data[0]
 		chname = data[1]
+		# Add line to data dict:
+		data_dict[chnum] = data
 		# What to do for Q10 (get rid of Nasal Vowels in West Africa):
 		if chnum == '10':
 			for y in range(0,10):
@@ -211,10 +216,36 @@ with open("lang.txt", "w") as f:
 		# What to do for Q144 (dealing with crazy negation word order tables): NEED TO FIX!
 		if chnum == '144':
 			setting = q144_func(data)
-		# Output to terminal and file
-		print(chnum + '. ' + chname + ': ' + '\033[1m' + setting + '\033[0m')
-		choice_dict[chname] = setting
-		f.write(chnum.encode('utf-8') + '. ' + chname.encode('utf-8') + ': ' + setting.encode('utf-8') + '\n')
+		# Add settings to dictionary, add to lists of chapter numbers and names
+		choice_dict[chnum] = setting
+		chnames.append(chname)
+		chnums.append(chnum)
+	# Deal with logical contradictions here:
+	# Phonology:
+	# Consonant-vowel ratio:
+	# Consonant inventory:
+	if choice_dict['4'] == "No voicing contrast" or choice_dict['4'] == "Voicing contrast in fricatives alone":
+		choice_dict['5'] = random_choice(['Other', '242', 'Missing /p/', '33'], 0, 4)[0]
+		choice_dict['7'] = random_choice(['No glottalized consonants', '409', 'Ejectives only', '58', 'Glottalized resonants only', '4', 'Ejectives and glottalized resonants', '20'], 0, 8)[0]
+	# Case-marking:
+	if choice_dict['49'] == "No morphological case-marking":
+		choice_dict['28'] = "Inflectional case marking is absent or minimal"
+		choice_dict['50'] = "No morphological case-marking"
+		choice_dict['51'] = "Neither case affixes nor adpositional clitics"
+		choice_dict['98'] = "Neutral"
+		choice_dict['99'] = random_choice(data_dict['99'], 2, 6)[0]
+	# Genders:
+	if choice_dict['30'] == "None":
+		choice_dict['31'] = "No gender system"
+		choice_dict['32'] = "No gender system"
+	# Plurals:
+	if choice_dict['33'] == "No plural":
+		choice_dict['34'] = "No nominal plural"
+		choice_dict['36'] = random_choice(data_dict['36'], 4, 10)[0]
+	# Output to terminal and file
+	for i in range(0,len(chnames)):
+		print(chnums[i] + '. ' + chnames[i] + ': ' + '\033[1m' + choice_dict[chnums[i]] + '\033[0m')
+		f.write(chnums[i].encode('utf-8') + '. ' + chnames[i].encode('utf-8') + ': ' + choice_dict[chnums[i]].encode('utf-8') + '\n')
 
 with open("lang_dict.bin", "wb") as f:
 	pickle.dump(choice_dict, f)
