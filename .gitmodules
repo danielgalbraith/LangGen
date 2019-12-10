@@ -1,0 +1,3 @@
+[submodule "WordGen"]
+	path = WordGen
+	url = https://github.com/danielgalbraith/WordGen.git
