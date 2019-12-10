@@ -1,15 +1,23 @@
-from lxml import html
+import sys
+import time
 import requests
+from tqdm import tqdm
+from lxml import html
+
+print('Getting data from WALS...')
 
 with open("data.txt", "w") as f:
-
 	chnames = []
 	with open('qnames.txt') as infile:
 		for line in infile:
 			chnames.append(line.strip('\n'))
-	for i in range(0,144):
+	for i in tqdm(range(0,144)):
 		chnum = str(i+1)
-		page = requests.get('http://wals.info/chapter/' + chnum)
+		try:
+			page = requests.get('http://wals.info/chapter/' + chnum)
+		except requests.exceptions.RequestException as e:
+    		print e
+    		sys.exit(1)
 		tree = html.fromstring(page.content)
 		values = tree.xpath('//*[@class="table table-hover values"]/tbody/tr[*]/td[2]/text()')
 		values = [x for x in values if not (x.isdigit() 
@@ -18,4 +26,7 @@ with open("data.txt", "w") as f:
 		valuesPlusFreqs = ''
 		for j in range(0,len(values)):
 			valuesPlusFreqs += values[j] + '|' + freqs[j] + '|'
-		f.write(chnum.encode('utf-8') + '|' + chnames[i].encode('utf-8') + '|' + valuesPlusFreqs.encode('utf-8') + '\n')
+		f.write(str(chnum) + '|' + str(chnames[i]) + '|' + str(valuesPlusFreqs) + '\n')
+		time.sleep(3)
+
+print('Done!')
