@@ -16,8 +16,8 @@ with open("data/wals_data.txt", "w") as f:
 		try:
 			page = requests.get('http://wals.info/chapter/' + chnum)
 		except requests.exceptions.RequestException as e:
-    		print e
-    		sys.exit(1)
+   			print(e)
+   			sys.exit(1)
 		tree = html.fromstring(page.content)
 		values = tree.xpath('//*[@class="table table-hover values"]/tbody/tr[*]/td[2]/text()')
 		values = [x for x in values if not (x.isdigit() 
