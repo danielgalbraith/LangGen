@@ -6,9 +6,9 @@ from lxml import html
 
 print('Getting data from WALS...')
 
-with open("data.txt", "w") as f:
+with open("data/wals_data.txt", "w") as f:
 	chnames = []
-	with open('qnames.txt') as infile:
+	with open('data/qnames.txt') as infile:
 		for line in infile:
 			chnames.append(line.strip('\n'))
 	for i in tqdm(range(0,144)):

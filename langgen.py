@@ -130,7 +130,7 @@ with open("lang.txt", "w") as f:
 	data_dict = {}
 	chnames = []
 	chnums = []
-	with open('data.txt') as dfile:
+	with open('data/wals_data.txt') as dfile:
 		# Put each line of data.txt into a list of lines:
 		lines = dfile.readlines()
 		lines = [line.strip('\n') for line in lines]
@@ -245,7 +245,7 @@ with open("lang.txt", "w") as f:
 	# Output to terminal and file
 	for i in range(0,len(chnames)):
 		print(chnums[i] + '. ' + chnames[i] + ': ' + '\033[1m' + choice_dict[chnums[i]] + '\033[0m')
-		f.write(chnums[i].encode('utf-8') + '. ' + chnames[i].encode('utf-8') + ': ' + choice_dict[chnums[i]].encode('utf-8') + '\n')
+		f.write(str(chnums[i]) + '. ' + str(chnames[i]) + ': ' + str(choice_dict[chnums[i]]) + '\n')
 
 with open("lang_dict.bin", "wb") as f:
 	pickle.dump(choice_dict, f)
