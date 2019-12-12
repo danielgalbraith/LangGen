@@ -3,6 +3,7 @@ import random
 import pickle
 import argparse
 
+
 def random_choice(data, start, end):
 	sub_data = data[start:end]
 	freqs = []
@@ -19,108 +20,91 @@ def random_choice(data, start, end):
 	feature = np.random.choice(values, 1, p=normw)
 	return feature
 
-def q21_func(data):
-	# Isolate case exponence table & do random choice
-	feature21a = random_choice(data, 2, 12)
-	# Isolate TAM exponence table & do random choice
-	feature21b = random_choice(data, 12, 24)
-	# Make feature[0] a string combining choice for case & TAM tables
-	feature21string = feature21a[0] + '; ' + feature21b[0]
-	return(feature21string)
+
+def special_choice(data, chnum, scd):
+	'''
+	What to do for Q21 (dealing with Case exponence + TAM exponence tables)
+	What to do for Q25 (dealing with Locus of marking + Zero marking of A and P tables)
+	What to do for Q79 (dealing with Suppletion according to Tense and Aspect + Suppletion in Imperatives and Hortatives)
+	What to do for Q81 (dealing with languages lacking a dominant word order)
+	What to do for Q108 (dealing with Antipassive)
+	What to do for Q109 (dealing with Applicative)
+	What to do for Q143 (dealing with crazy negation tables)
+	What to do for Q144 (dealing with crazy negation word order tables): NEED TO FIX!
+	'''
+	start_a = scd[chnum][0]
+	end_a = scd[chnum][1]
+	choice_a = random_choice(data, start_a, end_a)
+	choice_string = choice_a[0]
+	
+	if chnum == '81':
+		end_b = scd[chnum][2]
+		# If lacking dominant word order, do the "languages with 2 dominant orders" table 67/189 of the time:
+		if choice_a[0] == 'Lacking a dominant word order':
+			rand = np.random.randint(0,189)
+			if rand < 68:
+				choice_b = random_choice(data, end_a, end_b)
+				choice_string = str(choice_a[0] + '; ' + choice_b[0])
+		return choice_string
+	elif chnum == '108':
+		end_b = scd[chnum][2]
+		# If not lacking antipassive, do Productivity of Antipassive table:
+		if choice_a[0] != 'No antipassive':
+			choice_b = random_choice(data, end_a, end_b)
+			choice_string = str(choice_a[0] + '; ' + choice_b[0])
+		return choice_string 
+	elif chnum == '109':
+		end_b = scd[chnum][2]
+		# If not lacking applicative, do Other Roles of Applied Objects table:
+		if choice_a[0] != 'No applicative construction':
+			choice_b = random_choice(data, end_a, end_b)
+			choice_string = str(choice_a[0] + '; ' + choice_b[0])
+		return choice_string
+	elif chnum == '143':
+		end_b = scd[chnum][2]
+		end_c = scd[chnum][3]
+		end_d = scd[chnum][4]
+		choice_b = []
+		choice_c = []
+		# Logic for special negation settings:
+		if choice_a[0] == 'Obligatory Double Negation':
+			choice_b = random_choice(data, end_a, end_b)
+			choice_string = str(choice_a[0] + '; ' + choice_b[0])
+		elif choice_a[0] == 'Optional Double Negation':
+			choice_c = random_choice(data, end_b, end_c)
+			choice_string = str(choice_a[0] + '; ' + choice_c[0])
+		elif choice_a[0] in ('Optional Triple Negation with Obligatory Double Negation','Optional Triple Negation with Optional Double Negation'):
+			choice_d = random_choice(data, end_c, end_d)
+			if len(choice_b) > 0:
+				choice_string = choice_a[0] + '; ' + choice_b[0] + '; ' + choice_d[0]
+			if len(choice_c) > 0:
+				choice_string = choice_a[0] + '; ' + choice_c[0] + '; ' + choice_d[0]
+		return choice_string
+	elif chnum == '144':
+		return choice_string
+	else:
+		end_b = scd[chnum][2]
+		choice_a = random_choice(data, start_a, end_a)
+		choice_b = random_choice(data, end_a, end_b)
+		choice_string = str(choice_a[0] + '; ' + choice_b[0])
+	return choice_string
 
 
-def q25_func(data):
-	# Isolate Locus of marking table & do random choice
-	feature25a = random_choice(data, 2, 12)
-	# Isolate Zero marking table & do random choice
-	feature25b = random_choice(data, 12, 16)
-	# Make feature[0] a string combining choice for Locus of marking & Zero marking tables
-	feature25string = feature25a[0] + '; ' + feature25b[0]
-	return(feature25string)
+def clean_up_tables(data, chnum, chnum_to_end_dict):
+	'''
+	What to do for Q10 (get rid of Nasal Vowels in West Africa)
+	What to do for Q39 (get rid of table for Pama-Nyungan)
+	What to do for Q58 (get rid of Number of Possessive Nouns table)
+	What to do for Q90 (get rid of various subtypes of relative clauses tables): NEED TO FIX!
+	What to do for Q130 (get rid of cultural categories table)
+	What to do for Q136 (get rid of M in First Person Singular table)
+	What to do for Q137 (get rid of M in Second Person Singular table)
+	What to do for Q143 (get rid of Preverbal/Postverbal/Minor morpheme tables)
+	'''
+	for i in range(0, chnum_to_end_dict[chnum]):
+		data.pop()
+	return data
 
-def q79_func(data):
-	# Isolate Suppletion in Tense and Aspect table & do random choice
-	feature79a = random_choice(data, 2, 10)
-	# Isolate Suppletion in Imperatives and Hortatives table & do random choice
-	feature79b = random_choice(data, 10, 18)
-	# Make feature[0] a string combining choice for Suppletion tables
-	feature79string = feature79a[0] + '; ' + feature79b[0]
-	return(feature79string)
-
-def q81_func(data):
-	# Isolate main word orders table and do random choice
-	feature81a = random_choice(data, 2, 16)
-	# If lacking dominant word order, do the "languages with 2 dominant orders" table 67/189 of the time:
-	feature81b = []
-	if feature81a[0] == 'Lacking a dominant word order':
-		rand = np.random.randint(0,189)
-		if rand < 68:
-			feature81b = random_choice(data, 16, 26)
-	# Make feature[0] a string combining choice for dominant word order tables
-	feature81string = feature81a[0]
-	if len(feature81b) > 0:
-		feature81string = feature81a[0] + '; ' + feature81b[0]
-	return(feature81string)
-
-def q108_func(data):
-	# Isolate Antipassive table & do random choice
-	feature108a = random_choice(data, 2, 8)
-	# If not lacking antipassive, do Productivity of Antipassive table:
-	feature108b = []
-	if feature108a[0] != 'No antipassive':
-		feature108b = random_choice(data, 8, 14)
-	# Make feature[0] a string combining choice for Antipassive tables
-	feature108string = feature108a[0]
-	if len(feature108b) > 0:
-		feature108string = feature108a[0] + '; ' + feature108b[0]
-	return(feature108string)
-
-def q109_func(data):
-	# Isolate Applicatives table & do random choice
-	feature109a = random_choice(data, 2, 18)
-	# If not lacking applicative, do Other Roles of Applied Objects table:
-	feature109b = []
-	if feature109a[0] != 'No applicative construction':
-		feature109b = random_choice(data, 18, 26)
-	# Make feature[0] a string combining choice for Applicative tables
-	feature109string = feature109a[0]
-	if len(feature109b) > 0:
-		feature109string = feature109a[0] + '; ' + feature109b[0]
-	return(feature109string)
-
-def q143_func(data):
-	# Isolate main negation types table & do random choice
-	feature143a = random_choice(data, 2, 36)
-	# If obligatory double negation, do following:
-	feature143b = []
-	if feature143a[0] == 'Obligatory Double Negation':
-		feature143b = random_choice(data, 36, 68)
-	# If optional double negation, do following:
-	feature143c = []
-	if feature143a[0] == 'Optional Double Negation':
-		feature143c = random_choice(data, 68, 114)
-	# If optional triple negation, do following:
-	feature143d = []
-	if feature143a[0] in ('Optional Triple Negation with Obligatory Double Negation','Optional Triple Negation with Optional Double Negation'):
-		feature143d = random_choice(data, 114, 126)
-	# Make feature[0] a string combining choice for all tables in Ch 143:
-	feature143string = feature143a[0]
-	if len(feature143b) > 0:
-		feature143string = feature143a[0] + '; ' + feature143b[0]
-	if len(feature143c) > 0:
-		feature143string = feature143a[0] + '; ' + feature143c[0]
-	if len(feature143d) > 0:
-		if len(feature143b) > 0:
-			feature143string = feature143a[0] + '; ' + feature143b[0] + '; ' + feature143d[0]
-		if len(feature143c) > 0:
-			feature143string = feature143a[0] + '; ' + feature143c[0] + '; ' + feature143d[0]
-	return(feature143string)
-
-def q144_func(data):
-	# Isolate main negation types table & do random choice
-	feature144 = random_choice(data, 2, 44)
-	feature144string = feature144[0]
-	return(feature144string)
 
 def run_langgen(in_dir, out_dir):
 	with open(out_dir + 'lang.txt', "w") as f:
@@ -130,6 +114,26 @@ def run_langgen(in_dir, out_dir):
 		data_dict = {}
 		chnames = []
 		chnums = []
+		chnum_to_end_dict = { 
+								'10': 10,
+								'39': 4,
+								'58': 8,
+								'90': 58,
+								'130': 6,
+								'136': 4,
+								'137': 4,
+								'143': 24
+							}
+		special_choice_dict = 	{ 
+									'21': [2, 12, 24],
+									'25': [2, 12, 16],
+									'79': [2, 10, 18],
+									'81': [2, 16, 26],
+									'108': [2, 8, 14],
+									'109': [2, 18, 26],
+									'143': [2, 36, 68, 114, 126],
+									'144': [2, 44]
+								}
 		with open(in_dir + 'wals_data.txt') as dfile:
 			# Put each line of data.txt into a list of lines:
 			lines = dfile.readlines()
@@ -139,43 +143,14 @@ def run_langgen(in_dir, out_dir):
 		for j in range(0,len(lines)):
 			# Split up line into list of items:
 			data = lines[j].split('|')
-			data.pop()
+			data.pop() # get rid of newline
 			chnum = data[0]
 			chname = data[1]
 			# Add line to data dict:
 			data_dict[chnum] = data
-			# What to do for Q10 (get rid of Nasal Vowels in West Africa):
-			if chnum == '10':
-				for y in range(0,10):
-					data.pop()
-			# What to do for Q39 (get rid of table for Pama-Nyungan):
-			if chnum == '39':
-				for z in range(0,4):
-					data.pop()
-			# What to do for Q58 (get rid of Number of Possessive Nouns table):
-			if chnum == '58':
-				for q in range(0,8):
-					data.pop()
-			# What to do for Q90 (get rid of various subtypes of relative clauses tables): NEED TO FIX!
-			if chnum == '90':
-				for q in range(0,58):
-					data.pop()
-			# What to do for Q130 (get rid of cultural categories table):
-			if chnum == '130':
-				for q in range(0,6):
-					data.pop()
-			# What to do for Q136 (get rid of M in First Person Singular table):
-			if chnum == '136':
-				for q in range(0,4):
-					data.pop()
-			# What to do for Q137 (get rid of M in Second Person Singular table):
-			if chnum == '137':
-				for q in range(0,4):
-					data.pop()
-			# What to do for Q143 (get rid of Preverbal/Postverbal/Minor morpheme tables):
-			if chnum == '143':
-				for q in range(0,24):
-					data.pop()
+			# Get rid of data from irrelevant tables:
+			if chnum in chnum_to_end_dict.keys():
+				data = clean_up_tables(data, chnum, chnum_to_end_dict)
 			# Get setting for current question:
 			values = []
 			freqs = []
@@ -192,30 +167,9 @@ def run_langgen(in_dir, out_dir):
 				feature = np.random.choice(values, 1, p=normw)
 			setting = ''
 			setting += feature[0]
-			# What to do for Q21 (dealing with Case exponence + TAM exponence tables):
-			if chnum == '21':
-				setting = q21_func(data)
-			# What to do for Q25 (dealing with Locus of marking + Zero marking of A and P tables):
-			if chnum == '25':
-				setting = q25_func(data)
-			# What to do for Q79 (dealing with Suppletion according to Tense and Aspect + Suppletion in Imperatives and Hortatives):
-			if chnum == '79':
-				setting = q79_func(data)
-			# What to do for Q81 (dealing with languages lacking a dominant word order):
-			if chnum == '81':
-				setting = q81_func(data)
-			# What to do for Q108 (dealing with Antipassive):
-			if chnum == '108':
-				setting = q108_func(data)
-			# What to do for Q109 (dealing with Applicative):
-			if chnum == '109':
-				setting = q109_func(data)
-			# What to do for Q143 (dealing with crazy negation tables):
-			if chnum == '143':
-				setting = q143_func(data)
-			# What to do for Q144 (dealing with crazy negation word order tables): NEED TO FIX!
-			if chnum == '144':
-				setting = q144_func(data)
+			# Special choice logic for certain features:
+			if chnum in special_choice_dict.keys():
+				setting = special_choice(data, chnum, special_choice_dict)
 			# Add settings to dictionary, add to lists of chapter numbers and names
 			choice_dict[chnum] = setting
 			chnames.append(chname)
