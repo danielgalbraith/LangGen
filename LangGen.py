@@ -4,6 +4,33 @@ import pickle
 import argparse
 
 
+chnum_to_end_dict = { 
+						'10': 10,
+						'39': 4,
+						'58': 8,
+						'90': 58,
+						'130': 6,
+						'136': 4,
+						'137': 4,
+						'143': 24
+					}
+special_choice_dict = 	{ 
+							'21': [2, 12, 24],
+							'25': [2, 12, 16],
+							'79': [2, 10, 18],
+							'81': [2, 16, 26],
+							'108': [2, 8, 14],
+							'109': [2, 18, 26],
+							'143': [2, 36, 68, 114, 126],
+							'144': [2, 44]
+						}
+def load_data(in_dir):
+	with open(in_dir + 'wals_data.txt', 'r') as f:
+		lines = f.readlines()
+		lines = [line.strip('\n') for line in lines]
+		return lines
+
+
 def random_choice(data, start, end):
 	sub_data = data[start:end]
 	freqs = []
@@ -106,115 +133,108 @@ def clean_up_tables(data, chnum, chnum_to_end_dict):
 	return data
 
 
-def run_langgen(in_dir, out_dir):
-	with open(out_dir + 'lang.txt', "w") as f:
-		chnum = ''
-		chname = ''
-		choice_dict = {}
-		data_dict = {}
-		chnames = []
-		chnums = []
-		chnum_to_end_dict = { 
-								'10': 10,
-								'39': 4,
-								'58': 8,
-								'90': 58,
-								'130': 6,
-								'136': 4,
-								'137': 4,
-								'143': 24
-							}
-		special_choice_dict = 	{ 
-									'21': [2, 12, 24],
-									'25': [2, 12, 16],
-									'79': [2, 10, 18],
-									'81': [2, 16, 26],
-									'108': [2, 8, 14],
-									'109': [2, 18, 26],
-									'143': [2, 36, 68, 114, 126],
-									'144': [2, 44]
-								}
-		with open(in_dir + 'wals_data.txt') as dfile:
-			# Put each line of data.txt into a list of lines:
-			lines = dfile.readlines()
-			lines = [line.strip('\n') for line in lines]
-		dfile.close()
-		# Do this for each line of data:
-		for j in range(0,len(lines)):
-			# Split up line into list of items:
-			data = lines[j].split('|')
-			data.pop() # get rid of newline
-			chnum = data[0]
-			chname = data[1]
-			# Add line to data dict:
-			data_dict[chnum] = data
-			# Get rid of data from irrelevant tables:
-			if chnum in chnum_to_end_dict.keys():
-				data = clean_up_tables(data, chnum, chnum_to_end_dict)
-			# Get setting for current question:
-			values = []
-			freqs = []
-			weights = []
-			for i in range(2,len(data)):
-				if i % 2 == 0:
-					values.append(data[i])
-				if i % 2 != 0:
-					freqs.append(data[i])
-			for k in range(0,len(freqs)):
-				weights.append(float(freqs[k]))
-			for x in range(0,len(values)-1):
-				normw = [w/sum(weights) for w in weights]
-				feature = np.random.choice(values, 1, p=normw)
-			setting = ''
-			setting += feature[0]
-			# Special choice logic for certain features:
-			if chnum in special_choice_dict.keys():
-				setting = special_choice(data, chnum, special_choice_dict)
-			# Add settings to dictionary, add to lists of chapter numbers and names
-			choice_dict[chnum] = setting
-			chnames.append(chname)
-			chnums.append(chnum)
-		# Deal with logical contradictions here:
-		# Phonology:
-		# Consonant-vowel ratio:
-		# Consonant inventory:
-		if choice_dict['4'] == "No voicing contrast" or choice_dict['4'] == "Voicing contrast in fricatives alone":
-			choice_dict['5'] = random_choice(['Other', '242', 'Missing /p/', '33'], 0, 4)[0]
-			choice_dict['7'] = random_choice(['No glottalized consonants', '409', 'Ejectives only', '58', 'Glottalized resonants only', '4', 'Ejectives and glottalized resonants', '20'], 0, 8)[0]
-		# Case-marking:
-		if choice_dict['49'] == "No morphological case-marking":
-			choice_dict['28'] = "Inflectional case marking is absent or minimal"
-			choice_dict['50'] = "No morphological case-marking"
-			choice_dict['51'] = "Neither case affixes nor adpositional clitics"
-			choice_dict['98'] = "Neutral"
-			choice_dict['99'] = random_choice(data_dict['99'], 2, 6)[0]
-		# Genders:
-		if choice_dict['30'] == "None":
-			choice_dict['31'] = "No gender system"
-			choice_dict['32'] = "No gender system"
-		# Plurals:
-		if choice_dict['33'] == "No plural":
-			choice_dict['34'] = "No nominal plural"
-			choice_dict['36'] = random_choice(data_dict['36'], 4, 10)[0]
-		# Output to terminal and file
+def get_setting(data):
+	values = []
+	freqs = []
+	weights = []
+	for i in range(2,len(data)):
+		if i % 2 == 0:
+			values.append(data[i])
+		else:
+			freqs.append(data[i])
+	for j in range(0,len(freqs)):
+		weights.append(float(freqs[j]))
+	for k in range(0,len(values)-1):
+		normw = [w/sum(weights) for w in weights]
+		feature = np.random.choice(values, 1, p=normw)
+	return str(feature[0])
+
+
+def remove_contradictions(choice_dict, data_dict):
+	# Phonology:
+	# Consonant-vowel ratio:
+	# Consonant inventory:
+	if choice_dict['4'] == "No voicing contrast" or choice_dict['4'] == "Voicing contrast in fricatives alone":
+		choice_dict['5'] = random_choice(['Other', '242', 'Missing /p/', '33'], 0, 4)[0]
+		choice_dict['7'] = random_choice(['No glottalized consonants', '409', 'Ejectives only', '58', 'Glottalized resonants only', '4', 'Ejectives and glottalized resonants', '20'], 0, 8)[0]
+	# Case-marking:
+	if choice_dict['49'] == "No morphological case-marking":
+		choice_dict['28'] = "Inflectional case marking is absent or minimal"
+		choice_dict['50'] = "No morphological case-marking"
+		choice_dict['51'] = "Neither case affixes nor adpositional clitics"
+		choice_dict['98'] = "Neutral"
+		choice_dict['99'] = random_choice(data_dict['99'], 2, 6)[0]
+	# Genders:
+	if choice_dict['30'] == "None":
+		choice_dict['31'] = "No gender system"
+		choice_dict['32'] = "No gender system"
+	# Plurals:
+	if choice_dict['33'] == "No plural":
+		choice_dict['34'] = "No nominal plural"
+		choice_dict['36'] = random_choice(data_dict['36'], 4, 10)[0]
+
+
+def write_to_file(out_dir, chnames, chnums, choice_dict, run_idx):
+	with open(out_dir + ('lang_%s.txt' % run_idx), "w") as f:
 		for i in range(0,len(chnames)):
 			print(chnums[i] + '. ' + chnames[i] + ': ' + '\033[1m' + choice_dict[chnums[i]] + '\033[0m')
 			f.write(str(chnums[i]) + '. ' + str(chnames[i]) + ': ' + str(choice_dict[chnums[i]]) + '\n')
 
-	with open(out_dir + "lang_dict.bin", "wb") as f:
+
+def dump_lang_dict(out_dir, choice_dict, run_idx):
+	with open(out_dir + ("lang_dict_%s.bin" % run_idx), "wb") as f:
 		pickle.dump(choice_dict, f)
+
+
+def run_langgen(in_dir, out_dir, run_idx, dump_dict):
+	choice_dict = {}
+	data_dict = {}
+	chnames = []
+	chnums = []
+	lines = load_data(in_dir)
+	# Do this for each line of data:
+	for j in range(0,len(lines)):
+		# Split up line into list of items:
+		data = lines[j].split('|')
+		data.pop() # get rid of newline
+		chnum = data[0]
+		chname = data[1]
+		# Add line to data dict:
+		data_dict[chnum] = data
+		# Get rid of data from irrelevant tables:
+		if chnum in chnum_to_end_dict.keys():
+			data = clean_up_tables(data, chnum, chnum_to_end_dict)
+		# Get setting for current question:
+		setting = get_setting(data)
+		# Special choice logic for certain features:
+		if chnum in special_choice_dict.keys():
+			setting = special_choice(data, chnum, special_choice_dict)
+		# Add settings to dictionary, add to lists of chapter numbers and names
+		choice_dict[chnum] = setting
+		chnames.append(chname)
+		chnums.append(chnum)
+	# Deal with logical contradictions here:
+	remove_contradictions(choice_dict, data_dict)
+	write_to_file(out_dir, chnames, chnums, choice_dict, run_idx)
+	if dump_dict:
+		dump_lang_dict(out_dir, choice_dict, run_idx)
 
 
 def main():
 	parser = argparse.ArgumentParser()
 	parser.add_argument("-i", "--input_dir", help="Directory containing input file with WALS grammar features.", default="data/")
 	parser.add_argument("-o", "--output_dir", help="Output directory for language text file and dict dump.", default="output/")
+	parser.add_argument("-n", "--n_runs", help="Number of times to run LangGen (default=1).", default=1)
+	parser.add_argument("-d", "--dump_dict", help="Option to dump Python dictionary of language settings.", action='store_true', default=False)
 	args = parser.parse_args()
 	
 	in_dir = args.input_dir
 	out_dir = args.output_dir
+	n_runs = int(args.n_runs)
+	dump_dict = args.dump_dict
 
-	run_langgen(in_dir, out_dir)
+	for i in range(0, n_runs):
+		run_langgen(in_dir, out_dir, i, dump_dict)
 
 
 if __name__ == '__main__':

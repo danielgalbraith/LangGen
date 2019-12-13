@@ -7,6 +7,6 @@ OUT_DIR=output/$MDY/
 
 mkdir -p $OUT_DIR
 
-python3 LangGen.py -o $OUT_DIR
+python3 LangGen.py -o $OUT_DIR -d
 
 echo "Done!"
