@@ -24,6 +24,8 @@ special_choice_dict = 	{
 							'143': [2, 36, 68, 114, 126],
 							'144': [2, 44]
 						}
+
+
 def load_data(in_dir):
 	with open(in_dir + 'wals_data.txt', 'r') as f:
 		lines = f.readlines()
@@ -102,10 +104,10 @@ def special_choice(data, chnum, scd):
 			choice_string = str(choice_a[0] + '; ' + choice_c[0])
 		elif choice_a[0] in ('Optional Triple Negation with Obligatory Double Negation','Optional Triple Negation with Optional Double Negation'):
 			choice_d = random_choice(data, end_c, end_d)
-			if len(choice_b) > 0:
-				choice_string = choice_a[0] + '; ' + choice_b[0] + '; ' + choice_d[0]
-			if len(choice_c) > 0:
-				choice_string = choice_a[0] + '; ' + choice_c[0] + '; ' + choice_d[0]
+			if choice_b:
+				choice_string = str(choice_a[0] + '; ' + choice_b[0] + '; ' + choice_d[0])
+			if choice_c:
+				choice_string = str(choice_a[0] + '; ' + choice_c[0] + '; ' + choice_d[0])
 		return choice_string
 	elif chnum == '144':
 		return choice_string
@@ -154,7 +156,7 @@ def remove_contradictions(choice_dict, data_dict):
 	# Phonology:
 	# Consonant-vowel ratio:
 	# Consonant inventory:
-	if choice_dict['4'] == "No voicing contrast" or choice_dict['4'] == "Voicing contrast in fricatives alone":
+	if choice_dict['4'] in ["No voicing contrast", "Voicing contrast in fricatives alone"]:
 		choice_dict['5'] = random_choice(['Other', '242', 'Missing /p/', '33'], 0, 4)[0]
 		choice_dict['7'] = random_choice(['No glottalized consonants', '409', 'Ejectives only', '58', 'Glottalized resonants only', '4', 'Ejectives and glottalized resonants', '20'], 0, 8)[0]
 	# Case-marking:
@@ -172,7 +174,36 @@ def remove_contradictions(choice_dict, data_dict):
 	if choice_dict['33'] == "No plural":
 		choice_dict['34'] = "No nominal plural"
 		choice_dict['36'] = random_choice(data_dict['36'], 4, 10)[0]
-
+	# Pronouns
+	if choice_dict['35'] == "No independent subject pronouns":
+		choice_dict['39'] = "No grammaticalised marking at all"
+		choice_dict['43'] = "Third person pronouns and demonstratives are unrelated to demonstratives"
+		choice_dict['44'] = "No gender distinctions"
+		choice_dict['45'] = "Second person pronouns encode no politeness distinction"
+		choice_dict['99'] = "None"
+		choice_dict['101'] = random_choice(['Pronominal subjects are expressed by affixes on verbs', '437', 'Pronominal subjects are expressed by clitics with variable host', '32', 'More than one of the above types with none dominant', '32'], 0, 6)[0]
+		choice_dict['136'] = "No M-T pronouns"
+		choice_dict['137'] = "No N-M pronouns"
+	# Articles:
+	if choice_dict['37'] in ["Definite word distinct from demonstrative", "Demonstrative word used as marker of definiteness", "Definite affix on noun"]:
+		choice_dict['38'] = random_choice(data_dict['38'], 2, 10)[0]
+	elif choice_dict['37'] == "No definite article but indefinite article":
+		choice_dict['38'] = random_choice(data_dict['38'], 2, 8)[0]
+	else:
+		choice_dict['38'] = "Neither indefinite nor definite"
+	# Adpositions:
+	if choice_dict['48'] == "No adpositions":
+		choice_dict['85'] = "No adpositions"
+	else:
+		choice_dict['85'] = random_choice(data_dict['85'], 2, 10)[0]
+	# Tense-Aspect:
+	if choice_dict['69'] == "No tense-aspect inflection":
+		choice_dict['67'] == "No inflectional marking of future/non-future distinction"
+	# Imperatives:
+	if choice_dict['70'] in ["The language has morphologically dedicated second plural imperatives but no morphologically dedicated second singular imperatives",
+								"The language has no morphologically dedicated second-person imperatives at all"]:
+		choice_dict['71'] = random_choice(data_dict['71'], 6, 10)[0]
+		# Fix "maximal vs minimal" imperative-hortative issue (chapter 72)
 
 def write_to_file(out_dir, chnames, chnums, choice_dict, run_idx):
 	with open(out_dir + ('lang_%s.txt' % run_idx), "w") as f:
@@ -186,20 +217,17 @@ def dump_lang_dict(out_dir, choice_dict, run_idx):
 		pickle.dump(choice_dict, f)
 
 
-def run_langgen(in_dir, out_dir, run_idx, dump_dict):
+def generate_lang(in_dir, out_dir, run_idx, dump_dict):
 	choice_dict = {}
 	data_dict = {}
 	chnames = []
 	chnums = []
 	lines = load_data(in_dir)
-	# Do this for each line of data:
 	for j in range(0,len(lines)):
-		# Split up line into list of items:
 		data = lines[j].split('|')
 		data.pop() # get rid of newline
 		chnum = data[0]
 		chname = data[1]
-		# Add line to data dict:
 		data_dict[chnum] = data
 		# Get rid of data from irrelevant tables:
 		if chnum in chnum_to_end_dict.keys():
@@ -234,7 +262,7 @@ def main():
 	dump_dict = args.dump_dict
 
 	for i in range(0, n_runs):
-		run_langgen(in_dir, out_dir, i, dump_dict)
+		generate_lang(in_dir, out_dir, i, dump_dict)
 
 
 if __name__ == '__main__':
