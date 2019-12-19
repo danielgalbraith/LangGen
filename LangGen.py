@@ -213,7 +213,7 @@ def remove_contradictions(choice_dict, data_dict):
 	if choice_dict['81'] == "Subject-object-verb (SOV)":
 		choice_dict['82'] = "Subject precedes verb (SV)"
 		choice_dict['83'] = "Object precedes verb (OV)"
-		choice_dict['84'] = random_choice(data_dict['84'], 2, 14)[0]
+		choice_dict['84'] = random_choice(['Oblique-object-verb (XOV)', '48', 'Object-oblique-verb (OXV)', '27', 'Object-verb-oblique (OVX)', '45', 'More than one order with none dominant', '167'], 0, 8)[0]
 		choice_dict['95'] = random_choice(['Object-verb and postpositional (OV&Postp)', '472', 'Object-verb and prepositional (OV&Prep)', '14', 'Languages not falling into one of the preceding four types', '158'], 0, 6)[0]
 		choice_dict['96'] = random_choice(['Object-verb and relative clause-noun (OV&RelN)', '132', 'Object-verb and noun-relative clause (OV&NRel)', '113', 'Languages not falling into one of the preceding four types', '213'], 0, 6)[0]
 		if choice_dict['96'] == "Object-verb and relative clause-noun (OV&RelN)":
@@ -233,7 +233,28 @@ def remove_contradictions(choice_dict, data_dict):
 			'Optional single negation', '1', 'Obligatory double negation', '101', 'Optional double negation', '67', 'Morphological negation only (but not double negation)', '333',
 			'Other languages', '168'], 0, 20)[0]
 	elif choice_dict['81'] == "Subject-verb-object (SVO)":
-		...
+		choice_dict['82'] = "Subject precedes verb (SV)"
+		choice_dict['83'] = "Object follows verb (VO)"
+		choice_dict['84'] = random_choice(['Verb-object-oblique (VOX)', '210', 'Oblique-verb-object (XVO)', '3', 'More than one order with none dominant', '167'], 0, 6)[0]
+		# HERE
+		choice_dict['95'] = random_choice(['Object-verb and postpositional (OV&Postp)', '472', 'Object-verb and prepositional (OV&Prep)', '14', 'Languages not falling into one of the preceding four types', '158'], 0, 6)[0]
+		choice_dict['96'] = random_choice(['Object-verb and relative clause-noun (OV&RelN)', '132', 'Object-verb and noun-relative clause (OV&NRel)', '113', 'Languages not falling into one of the preceding four types', '213'], 0, 6)[0]
+		if choice_dict['96'] == "Object-verb and relative clause-noun (OV&RelN)":
+			choice_dict['90'] = "Relative clause precedes noun (RelN)"
+		elif choice_dict['96'] == "Object-verb and noun-relative clause (OV&NRel)":
+			choice_dict['90'] = "Relative clause follows noun (NRel)"
+		else:
+			choice_dict['90'] = random_choice(['Internally-headed relative clause', '24', 'Correlative relative clause', '7', 'Adjoined relative clause', '8', 'Double-headed relative clause', '1', 'Mixed types of relative clause with none dominant', '64'], 0, 10)[0]
+		choice_dict['97'] = random_choice(['Object-verb and adjective-noun (OV&AdjN)', '216', 'Object-verb and noun-adjective (OV&NAdj)', '332', 'Languages not falling into one of the preceding four types', '198'], 0, 6)[0]
+		if choice_dict['97'] == "Object-verb and adjective-noun (OV&AdjN)":
+			choice_dict['87'] = "Modifying adjective precedes noun (AdjN)"
+		elif choice_dict['97'] == "Object-verb and noun-adjective (OV&NAdj)":
+			choice_dict['87'] = "Modifying adjective follows noun (NAdj)"
+		else:
+			choice_dict['87'] = random_choice(['Both orders of noun and modifying adjective occur, with neither dominant', '110', 'Adjectives do not modify nouns, occurring as predicates in internally headed relative clauses', '5'], 0, 4)[0]
+		choice_dict['144'] = random_choice(['NegSOV', '11', 'SNegOV', '15', 'SONegV', '65', 'SOVNeg', '49', 'More than one position for negative morpheme, with none dominant', '91',
+			'Optional single negation', '1', 'Obligatory double negation', '101', 'Optional double negation', '67', 'Morphological negation only (but not double negation)', '333',
+			'Other languages', '168'], 0, 20)[0]
 	elif choice_dict['81'] == "Verb-subject-object (VSO)":
 		...
 	elif choice_dict['81'] == "Verb-object-subject (VOS)":
